@@ -21,6 +21,10 @@ import {
 import Link from "next/link"
 
 export default function WelcomePage() {
+  return <WelcomeContent />
+}
+
+function WelcomeContent() {
   const [currentTestimonial, setCurrentTestimonial] = useState(0)
 
   const testimonials = [
@@ -200,7 +204,7 @@ export default function WelcomePage() {
           <h2 className="text-4xl md:text-5xl font-bold text-gray-800 dark:text-white mb-4">
             Stories from Our
             <span className="bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
-              Community
+              {" "}Community
             </span>
           </h2>
           <p className="text-xl text-gray-600 dark:text-gray-300">Real women, real stories, real impact</p>
@@ -239,7 +243,7 @@ export default function WelcomePage() {
                     className={`w-3 h-3 rounded-full transition-all ${
                       index === currentTestimonial
                         ? "bg-gradient-to-r from-pink-500 to-purple-500"
-                        : "bg-gray-300 dark:bg-gray-600"
+                        : "bg-gray-300 hover:bg-gray-400"
                     }`}
                   />
                 ))}
@@ -251,9 +255,13 @@ export default function WelcomePage() {
 
       {/* CTA Section */}
       <section className="container mx-auto px-4 py-16">
-        <Card className="max-w-4xl mx-auto p-12 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 border-0 text-white text-center">
-          <CardContent className="p-0">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">Ready to Transform Your Daily Life?</h2>
+        <Card className="max-w-4xl mx-auto p-12 bg-gradient-to-r from-pink-500 to-purple-500 text-white border-0">
+          <CardContent className="p-0 text-center">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6">
+              Ready to Transform Your
+              <br />
+              Digital Life?
+            </h2>
             <p className="text-xl mb-8 opacity-90">
               Join thousands of women in tech who've found their perfect balance
             </p>
@@ -261,33 +269,24 @@ export default function WelcomePage() {
               <Link href="/">
                 <Button
                   size="lg"
-                  variant="secondary"
-                  className="bg-white text-purple-600 hover:bg-gray-50 px-8 py-4 text-lg font-semibold"
+                  className="bg-white text-purple-600 hover:bg-gray-100 px-8 py-4 text-lg font-semibold"
                 >
-                  <Laptop className="mr-2 w-5 h-5" />
-                  Start Planning Today
+                  Get Started Now
+                  <ArrowRight className="ml-2 w-5 h-5" />
                 </Button>
               </Link>
               <Button
-                size="lg"
                 variant="outline"
+                size="lg"
                 className="border-white text-white hover:bg-white/10 px-8 py-4 text-lg font-semibold"
               >
-                <Baby className="mr-2 w-5 h-5" />
-                Learn More
+                <Coffee className="mr-2 w-5 h-5" />
+                Schedule a Demo
               </Button>
             </div>
           </CardContent>
         </Card>
       </section>
-
-      {/* Footer */}
-      <footer className="container mx-auto px-4 py-8 text-center text-gray-600 dark:text-gray-400">
-        <p className="mb-4">
-          Made with <Heart className="inline w-4 h-4 text-pink-500" /> by women in tech, for women in tech
-        </p>
-        <p className="text-sm">© 2024 TechMom Workspace. Empowering women to thrive in tech and life.</p>
-      </footer>
     </div>
   )
 }

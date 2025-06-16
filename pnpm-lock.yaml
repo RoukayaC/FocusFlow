@@ -157,10 +157,10 @@ importers:
         version: 3.25.64
     devDependencies:
       '@types/node':
-        specifier: ^22
+        specifier: ^22.15.31
         version: 22.15.31
       '@types/react':
-        specifier: ^19
+        specifier: ^19.1.8
         version: 19.1.8
       '@types/react-dom':
         specifier: ^19
@@ -172,7 +172,7 @@ importers:
         specifier: ^3.4.17
         version: 3.4.17
       typescript:
-        specifier: ^5
+        specifier: ^5.8.3
         version: 5.8.3
 
 packages:
