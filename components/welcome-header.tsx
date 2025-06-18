@@ -20,7 +20,7 @@ export function WelcomeHeader() {
             </div>
           </div>
 
-          <Link href="/welcome">
+          <Link href="/">
             <Button variant="secondary" className="bg-white/20 text-white border-white/30 hover:bg-white/30">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Welcome

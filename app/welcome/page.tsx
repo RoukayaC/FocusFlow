@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useAuth } from "@/hooks/use-auth"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -8,15 +9,15 @@ import {
   Heart,
   Code,
   BookOpen,
-  Baby,
   Sparkles,
   Target,
   Calendar,
   Coffee,
-  Laptop,
   Users,
   ArrowRight,
   Star,
+  LogIn,
+  User,
 } from "lucide-react"
 import Link from "next/link"
 
@@ -25,6 +26,7 @@ export default function WelcomePage() {
 }
 
 function WelcomeContent() {
+  const { isAuthenticated, isLoading, quickLogin } = useAuth()
   const [currentTestimonial, setCurrentTestimonial] = useState(0)
 
   const testimonials = [
@@ -87,6 +89,63 @@ function WelcomeContent() {
     },
   ]
 
+  // Show appropriate CTA buttons based on auth state
+  const renderCTAButtons = () => {
+    if (isLoading) {
+      return (
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="w-48 h-12 bg-gray-200 rounded animate-pulse"></div>
+          <div className="w-36 h-12 bg-gray-200 rounded animate-pulse"></div>
+        </div>
+      )
+    }
+
+    if (isAuthenticated) {
+      return (
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <Link href="/dashboard">
+            <Button
+              size="lg"
+              className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all"
+            >
+              Go to Dashboard
+              <ArrowRight className="ml-2 w-5 h-5" />
+            </Button>
+          </Link>
+          <Button
+            variant="outline"
+            size="lg"
+            className="border-purple-200 text-purple-600 hover:bg-purple-50 px-8 py-4 text-lg font-semibold"
+          >
+            <Coffee className="mr-2 w-5 h-5" />
+            Take the Tour
+          </Button>
+        </div>
+      )
+    }
+
+    return (
+      <div className="flex flex-col sm:flex-row gap-4 justify-center">
+        <Button
+          size="lg"
+          onClick={quickLogin}
+          className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all"
+        >
+          <LogIn className="mr-2 w-5 h-5" />
+          Start Your Journey
+        </Button>
+        <Button
+          variant="outline"
+          size="lg"
+          className="border-purple-200 text-purple-600 hover:bg-purple-50 px-8 py-4 text-lg font-semibold"
+        >
+          <Coffee className="mr-2 w-5 h-5" />
+          Take the Tour
+        </Button>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 dark:from-gray-900 dark:via-purple-900/20 dark:to-indigo-900/20">
       {/* Hero Section */}
@@ -109,7 +168,7 @@ function WelcomeContent() {
           </h1>
 
           <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-8 leading-relaxed">
-            A <strong className="text-purple-600 dark:text-purple-400">Notion workspace</strong> tailored for women in
+            A <strong className="text-purple-600 dark:text-purple-400">task management app</strong> tailored for women in
             tech who are managing
             <br />
             <span className="bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent font-semibold">
@@ -122,25 +181,7 @@ function WelcomeContent() {
             understands your journey.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/">
-              <Button
-                size="lg"
-                className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all"
-              >
-                Start Your Journey
-                <ArrowRight className="ml-2 w-5 h-5" />
-              </Button>
-            </Link>
-            <Button
-              variant="outline"
-              size="lg"
-              className="border-purple-200 text-purple-600 hover:bg-purple-50 px-8 py-4 text-lg font-semibold"
-            >
-              <Coffee className="mr-2 w-5 h-5" />
-              Take the Tour
-            </Button>
-          </div>
+          {renderCTAButtons()}
         </div>
       </section>
 
@@ -265,25 +306,7 @@ function WelcomeContent() {
             <p className="text-xl mb-8 opacity-90">
               Join thousands of women in tech who've found their perfect balance
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/">
-                <Button
-                  size="lg"
-                  className="bg-white text-purple-600 hover:bg-gray-100 px-8 py-4 text-lg font-semibold"
-                >
-                  Get Started Now
-                  <ArrowRight className="ml-2 w-5 h-5" />
-                </Button>
-              </Link>
-              <Button
-                variant="outline"
-                size="lg"
-                className="border-white text-white hover:bg-white/10 px-8 py-4 text-lg font-semibold"
-              >
-                <Coffee className="mr-2 w-5 h-5" />
-                Schedule a Demo
-              </Button>
-            </div>
+            {renderCTAButtons()}
           </CardContent>
         </Card>
       </section>
