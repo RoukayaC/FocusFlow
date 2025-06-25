@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useAuth } from "@/hooks/use-auth"
+import { useState } from "react"
+import { useUser, SignInButton } from "@clerk/nextjs"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -17,7 +17,6 @@ import {
   ArrowRight,
   Star,
   LogIn,
-  User,
 } from "lucide-react"
 import Link from "next/link"
 
@@ -26,7 +25,7 @@ export default function WelcomePage() {
 }
 
 function WelcomeContent() {
-  const { isAuthenticated, isLoading, quickLogin } = useAuth()
+  const { isSignedIn, isLoaded } = useUser()
   const [currentTestimonial, setCurrentTestimonial] = useState(0)
 
   const testimonials = [
@@ -91,7 +90,7 @@ function WelcomeContent() {
 
   // Show appropriate CTA buttons based on auth state
   const renderCTAButtons = () => {
-    if (isLoading) {
+    if (!isLoaded) {
       return (
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <div className="w-48 h-12 bg-gray-200 rounded animate-pulse"></div>
@@ -100,7 +99,7 @@ function WelcomeContent() {
       )
     }
 
-    if (isAuthenticated) {
+    if (isSignedIn) {
       return (
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link href="/dashboard">
@@ -126,14 +125,15 @@ function WelcomeContent() {
 
     return (
       <div className="flex flex-col sm:flex-row gap-4 justify-center">
-        <Button
-          size="lg"
-          onClick={quickLogin}
-          className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all"
-        >
-          <LogIn className="mr-2 w-5 h-5" />
-          Start Your Journey
-        </Button>
+        <SignInButton mode="modal">
+          <Button
+            size="lg"
+            className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all"
+          >
+            <LogIn className="mr-2 w-5 h-5" />
+            Start Your Journey
+          </Button>
+        </SignInButton>
         <Button
           variant="outline"
           size="lg"
