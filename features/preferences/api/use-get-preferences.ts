@@ -1,37 +1,33 @@
-import { useQuery } from "@tanstack/react-query"
+import { useQuery } from "@tanstack/react-query";
+import { client } from "@/lib/hono";
+import { InferResponseType } from "hono";
+
+type ResponseType = InferResponseType<typeof client.api.preferences.$get>;
 
 export interface UserPreferences {
-  id: string
-  userId: string
-  theme: 'light' | 'dark' | 'system'
-  defaultCategory: 'coding' | 'life' | 'self-care'
-  notifications: boolean
-  motivationalMessages: boolean
-  createdAt: Date
-  updatedAt: Date
+  id: string;
+  userId: string;
+  theme: 'light' | 'dark' | 'system';
+  defaultCategory: 'coding' | 'life' | 'self-care';
+  notifications: boolean;
+  motivationalMessages: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export const useGetPreferences = () => {
-  const query = useQuery<UserPreferences, Error>({
+  const query = useQuery<ResponseType, Error>({
     queryKey: ["preferences"],
     queryFn: async () => {
-      const response = await fetch("/api/preferences")
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || "Failed to fetch preferences")
-      }
-
-      const data = await response.json()
+      const response = await client.api.preferences.$get();
       
-      // Transform the data to ensure dates are Date objects
-      return {
-        ...data,
-        createdAt: new Date(data.createdAt),
-        updatedAt: new Date(data.updatedAt),
+      if (!response.ok) {
+        throw new Error("Failed to fetch preferences");
       }
+      
+      return await response.json();
     },
-  })
+  });
 
-  return query
-}
+  return query;
+};
