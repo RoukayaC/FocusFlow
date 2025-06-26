@@ -1,19 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { client } from "@/lib/hono";
-import { InferResponseType } from "hono";
+import { InferResponseType, InferRequestType } from "hono";
 
 type ResponseType = InferResponseType<typeof client.api.preferences.$get>;
-
-export interface UserPreferences {
-  id: string;
-  userId: string;
-  theme: 'light' | 'dark' | 'system';
-  defaultCategory: 'coding' | 'life' | 'self-care';
-  notifications: boolean;
-  motivationalMessages: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
+type RequestType = InferRequestType<typeof client.api.preferences.$get>;
 
 export const useGetPreferences = () => {
   const query = useQuery<ResponseType, Error>({
