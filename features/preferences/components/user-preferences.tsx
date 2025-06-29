@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Settings, User, Bell, Palette, Save, Loader2 } from "lucide-react"
+import { Settings, User, Bell, Palette, Save, Loader2, Sparkles } from "lucide-react"
 import { useUser } from "@clerk/nextjs"
 import { usePreferences } from "@/features/preferences/hooks/use-preferences"
 import { useTheme } from "next-themes"
@@ -68,7 +68,11 @@ export function UserPreferencesDialog() {
     return (
       <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogTrigger asChild>
-          <Button variant="outline" size="sm">
+          <Button 
+            variant="outline" 
+            size="sm"
+            className="bg-white/20 text-white border-white/30 hover:bg-white/30 backdrop-blur-sm"
+          >
             <Settings className="h-4 w-4 mr-2" />
             Settings
           </Button>
@@ -76,12 +80,12 @@ export function UserPreferencesDialog() {
         <DialogContent className="sm:max-w-[500px] max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <User className="h-5 w-5" />
+              <Settings className="h-5 w-5 text-purple-600" />
               User Preferences
             </DialogTitle>
           </DialogHeader>
           <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-8 w-8 animate-spin" />
+            <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
           </div>
         </DialogContent>
       </Dialog>
@@ -91,7 +95,11 @@ export function UserPreferencesDialog() {
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
+        <Button 
+          variant="outline" 
+          size="sm"
+          className="bg-white/20 text-white border-white/30 hover:bg-white/30 backdrop-blur-sm transition-all duration-200"
+        >
           <Settings className="h-4 w-4 mr-2" />
           Settings
         </Button>
@@ -99,9 +107,13 @@ export function UserPreferencesDialog() {
 
       <DialogContent className="sm:max-w-[500px] max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <User className="h-5 w-5" />
-            User Preferences
+          <DialogTitle className="flex items-center gap-2 text-xl">
+            <div className="p-2 bg-gradient-to-r from-pink-500 to-purple-500 rounded-lg">
+              <Settings className="h-5 w-5 text-white" />
+            </div>
+            <span className="bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+              User Preferences
+            </span>
           </DialogTitle>
         </DialogHeader>
 
@@ -113,24 +125,25 @@ export function UserPreferencesDialog() {
 
         <div className="space-y-6 py-4">
           {/* Personal Information */}
-          <Card>
+          <Card className="border-pink-100 bg-gradient-to-br from-pink-50 to-purple-50">
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
-                <User className="h-4 w-4" />
-                Personal Information
+                <User className="h-4 w-4 text-pink-600" />
+                <span className="text-pink-600">Personal Information</span>
               </CardTitle>
               <CardDescription>Customize your personal details</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-2">
-                <Label htmlFor="name">Your Name</Label>
+                <Label htmlFor="name" className="text-gray-700">Your Name</Label>
                 <Input
                   id="name"
                   value={userName}
                   onChange={(e) => setUserName(e.target.value)}
                   placeholder="Enter your name..."
+                  className="border-pink-200 focus:border-pink-500 focus:ring-pink-500"
                 />
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-gray-500">
                   This is how you'll be greeted in the app
                 </p>
               </div>
@@ -138,30 +151,30 @@ export function UserPreferencesDialog() {
           </Card>
 
           {/* Appearance */}
-          <Card>
+          <Card className="border-purple-100 bg-gradient-to-br from-purple-50 to-indigo-50">
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
-                <Palette className="h-4 w-4" />
-                Appearance
+                <Palette className="h-4 w-4 text-purple-600" />
+                <span className="text-purple-600">Appearance</span>
               </CardTitle>
               <CardDescription>Customize the look and feel</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-2">
-                <Label htmlFor="theme">Theme</Label>
+                <Label htmlFor="theme" className="text-gray-700">Theme</Label>
                 <Select
                   value={preferences?.theme || 'light'}
                   onValueChange={(value: "light" | "dark" | "system") =>
                     updatePreference("theme", value)
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="border-purple-200 focus:border-purple-500 focus:ring-purple-500">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="light">Light</SelectItem>
-                    <SelectItem value="dark">Dark</SelectItem>
-                    <SelectItem value="system">System</SelectItem>
+                    <SelectItem value="light">☀️ Light</SelectItem>
+                    <SelectItem value="dark">🌙 Dark</SelectItem>
+                    <SelectItem value="system">💻 System</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -169,27 +182,30 @@ export function UserPreferencesDialog() {
           </Card>
 
           {/* Task Preferences */}
-          <Card>
+          <Card className="border-indigo-100 bg-gradient-to-br from-indigo-50 to-blue-50">
             <CardHeader className="pb-3">
-              <CardTitle className="text-base">Task Preferences</CardTitle>
+              <CardTitle className="text-base flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-indigo-600" />
+                <span className="text-indigo-600">Task Preferences</span>
+              </CardTitle>
               <CardDescription>Set your default task settings</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-2">
-                <Label htmlFor="defaultCategory">Default Category</Label>
+                <Label htmlFor="defaultCategory" className="text-gray-700">Default Category</Label>
                 <Select
                   value={preferences?.defaultCategory || 'coding'}
                   onValueChange={(value: "coding" | "life" | "self-care") =>
                     updatePreference("defaultCategory", value)
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="border-indigo-200 focus:border-indigo-500 focus:ring-indigo-500">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="coding">Tech Growth 💻</SelectItem>
-                    <SelectItem value="life">Life Balance ⚖️</SelectItem>
-                    <SelectItem value="self-care">Self-Care Rituals 🌸</SelectItem>
+                    <SelectItem value="coding">💻 Tech Growth</SelectItem>
+                    <SelectItem value="life">⚖️ Life Balance</SelectItem>
+                    <SelectItem value="self-care">🌸 Self-Care Rituals</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -197,21 +213,21 @@ export function UserPreferencesDialog() {
           </Card>
 
           {/* Notifications */}
-          <Card>
+          <Card className="border-emerald-100 bg-gradient-to-br from-emerald-50 to-green-50">
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
-                <Bell className="h-4 w-4" />
-                Notifications
+                <Bell className="h-4 w-4 text-emerald-600" />
+                <span className="text-emerald-600">Notifications</span>
               </CardTitle>
               <CardDescription>Manage your notification preferences</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
+            <CardContent className="space-y-6">
+              <div className="flex items-center justify-between p-4 bg-white/50 rounded-lg border border-emerald-200">
                 <div className="space-y-0.5">
-                  <Label htmlFor="notifications" className="text-base">
+                  <Label htmlFor="notifications" className="text-base font-medium text-gray-800">
                     Enable Notifications
                   </Label>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-gray-600">
                     Get notified about overdue tasks and reminders
                   </p>
                 </div>
@@ -219,15 +235,16 @@ export function UserPreferencesDialog() {
                   id="notifications"
                   checked={preferences?.notifications ?? true}
                   onCheckedChange={(checked) => updatePreference("notifications", checked)}
+                  className="data-[state=checked]:bg-emerald-500"
                 />
               </div>
 
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between p-4 bg-white/50 rounded-lg border border-emerald-200">
                 <div className="space-y-0.5">
-                  <Label htmlFor="motivationalMessages" className="text-base">
+                  <Label htmlFor="motivationalMessages" className="text-base font-medium text-gray-800">
                     Motivational Messages
                   </Label>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-gray-600">
                     Show encouraging messages throughout the day
                   </p>
                 </div>
@@ -237,17 +254,26 @@ export function UserPreferencesDialog() {
                   onCheckedChange={(checked) =>
                     updatePreference("motivationalMessages", checked)
                   }
+                  className="data-[state=checked]:bg-emerald-500"
                 />
               </div>
             </CardContent>
           </Card>
         </div>
 
-        <div className="flex justify-end gap-2 pt-4 border-t">
-          <Button variant="outline" onClick={() => setOpen(false)}>
+        <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+          <Button 
+            variant="outline" 
+            onClick={() => setOpen(false)}
+            className="border-gray-300 text-gray-700 hover:bg-gray-50"
+          >
             Cancel
           </Button>
-          <Button onClick={handleSave} disabled={isSaving}>
+          <Button 
+            onClick={handleSave} 
+            disabled={isSaving}
+            className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white"
+          >
             {isSaving ? (
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
             ) : (
