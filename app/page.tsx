@@ -19,10 +19,11 @@ import {
   LogIn,
 } from "lucide-react";
 import Link from "next/link";
+import { useGetProducts } from "@/features/polar/api/use-get-products";
 
 export default function WelcomePage() {
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
-
+  const { data: products, isLoading } = useGetProducts();
   const testimonials = [
     {
       name: "Sarah Chen",
@@ -362,75 +363,28 @@ export default function WelcomePage() {
 
         {/* Pricing Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-7xl mx-auto">
-          {/* Free Plan */}
-          <Card className="p-8 border border-gray-200 dark:border-gray-800 rounded-3xl shadow-md transition hover:shadow-xl">
-            <CardContent className="text-center">
-              <h3 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">
-                Free
-              </h3>
-              <p className="text-gray-500 mb-6">Start with the basics</p>
-              <p className="text-4xl font-extrabold text-gray-900 dark:text-white mb-6">
-                $0<span className="text-lg font-normal">/mo</span>
-              </p>
-              <ul className="text-sm text-gray-700 dark:text-gray-300 space-y-3 mb-6">
-                <li>✔ 1 Project</li>
-                <li>✔ Community Support</li>
-                <li>✔ Basic Analytics</li>
-              </ul>
-              <button className="bg-gray-900 text-white px-6 py-2 rounded-full hover:bg-gray-800 transition">
-                Get Started
-              </button>
-            </CardContent>
-          </Card>
-
-          {/* Pro Plan */}
-          <Card className="relative p-8 border-4 border-purple-600 bg-gradient-to-b from-purple-100 to-white dark:from-purple-950 dark:to-gray-900 rounded-3xl shadow-xl transform scale-105 z-10 transition hover:shadow-2xl">
-            <div className="absolute top-4 right-4 bg-purple-600 text-white text-xs font-semibold px-3 py-1 rounded-full shadow">
-              Most Popular
-            </div>
-            <CardContent className="text-center">
-              <h3 className="text-2xl font-bold mb-2 text-purple-800 dark:text-purple-300">
-                Pro
-              </h3>
-              <p className="text-purple-600 dark:text-purple-200 mb-6">
-                For solo builders & creators
-              </p>
-              <p className="text-4xl font-extrabold text-purple-800 dark:text-white mb-6">
-                $19<span className="text-lg font-normal">/mo</span>
-              </p>
-              <ul className="text-sm text-gray-800 dark:text-gray-200 space-y-3 mb-6">
-                <li>✔ 10 Projects</li>
-                <li>✔ Priority Email Support</li>
-                <li>✔ Advanced Analytics</li>
-              </ul>
-              <button className="bg-purple-600 text-white px-6 py-2 rounded-full hover:bg-purple-700 transition">
-                Upgrade Now
-              </button>
-            </CardContent>
-          </Card>
-
-          {/* Premium Plan */}
-          <Card className="p-8 border border-gray-200 dark:border-gray-800 rounded-3xl shadow-md transition hover:shadow-xl">
-            <CardContent className="text-center">
-              <h3 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">
-                Premium
-              </h3>
-              <p className="text-gray-500 mb-6">
-                Best for teams & scaling businesses
-              </p>
-              <p className="text-4xl font-extrabold text-gray-900 dark:text-white mb-6">
-                $49<span className="text-lg font-normal">/mo</span>
-              </p>
-              <ul className="text-sm text-gray-700 dark:text-gray-300 space-y-3 mb-6">
-                <li>✔ Unlimited Projects</li>
-                <li>✔ Dedicated Support</li>
-                <li>✔ Custom Integrations</li>
-              </ul>
-              <button className="bg-gray-900 text-white px-6 py-2 rounded-full hover:bg-gray-800 transition">
-                Contact Sales
-              </button>
-            </CardContent>
-          </Card>
+          {products &&
+            products.map((p) => (
+              <Card className="p-8 border border-gray-200 dark:border-gray-800 rounded-3xl shadow-md transition hover:shadow-xl">
+                <CardContent className="text-center">
+                  <h3 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">
+                    Free
+                  </h3>
+                  <p className="text-gray-500 mb-6">Start with the basics</p>
+                  <p className="text-4xl font-extrabold text-gray-900 dark:text-white mb-6">
+                    $0<span className="text-lg font-normal">/mo</span>
+                  </p>
+                  <ul className="text-sm text-gray-700 dark:text-gray-300 space-y-3 mb-6">
+                    <li>✔ 1 Project</li>
+                    <li>✔ Community Support</li>
+                    <li>✔ Basic Analytics</li>
+                  </ul>
+                  <button className="bg-gray-900 text-white px-6 py-2 rounded-full hover:bg-gray-800 transition">
+                    Get Started
+                  </button>
+                </CardContent>
+              </Card>
+            ))}
         </div>
       </section>
 
