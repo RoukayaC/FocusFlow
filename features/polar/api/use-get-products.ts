@@ -7,9 +7,6 @@ import { InferResponseType } from "hono";
 // Infer the response type from your Hono client
 type ResponseType = InferResponseType<typeof client.api.polar.products.$get>;
 
-/**
- * Hook to fetch all products from the API
- */
 export const useGetProducts = () => {
   return useQuery<ResponseType, Error>({
     queryKey: ["products"],
@@ -24,3 +21,5 @@ export const useGetProducts = () => {
     },
   });
 };
+
+
