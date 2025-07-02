@@ -1,3 +1,4 @@
+// app/dashboard/page.tsx
 "use client";
 
 import { TaskArea } from "@/features/tasks/components/task-area";
@@ -14,16 +15,19 @@ import {
   TrendingUp,
   Clock,
   Target,
+  Crown,
+  Star,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { UserButton, useUser } from "@clerk/nextjs";
 import { UserPreferencesDialog } from "@/features/preferences/components/user-preferences";
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 // Import the new hooks
 import { useTasks } from "@/features/tasks/hooks/use-tasks";
 import { usePreferences } from "@/features/preferences/hooks/use-preferences";
+import { useGetProducts } from "@/features/polar/api/use-get-products";
 import type { CreateTaskInput, UpdateTaskInput } from "@/types/task";
 
 function LoadingSkeleton() {
@@ -113,14 +117,149 @@ function UserGreeting() {
       <p className="text-gray-600 dark:text-gray-300 text-lg">{today}</p>
       {showMotivational && (
         <p className="text-sm text-purple-600 dark:text-purple-400 font-medium italic">
-          {motivationalMessages[Math.floor(Math.random() * motivationalMessages.length)]}
+          {
+            motivationalMessages[
+              Math.floor(Math.random() * motivationalMessages.length)
+            ]
+          }
         </p>
       )}
     </div>
   );
 }
 
+function UpgradeCard() {
+  const { data: products, isLoading } = useGetProducts();
+  const [isCreatingCheckout, setIsCreatingCheckout] = useState(false);
+
+  const createCheckout = async () => {
+    if (!products || products.length === 0) return;
+
+    setIsCreatingCheckout(true);
+    try {
+      const response = await fetch("/api/polar/checkout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          products: [products[1]?.id || products[0]?.id],
+        }),
+      });
+
+      if (response.ok) {
+        const checkoutUrl = await response.json();
+        window.location.href = checkoutUrl;
+      } else {
+        console.error("Failed to create checkout");
+      }
+    } catch (error) {
+      console.error("Error creating checkout:", error);
+    } finally {
+      setIsCreatingCheckout(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <Card className="bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200">
+        <CardContent className="p-6">
+          <Skeleton className="h-20 w-full" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200 shadow-lg hover:shadow-xl transition-all">
+      <CardContent className="p-6">
+        <div className="flex items-start justify-between">
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="p-2 bg-gradient-to-r from-amber-500 to-orange-500 rounded-lg">
+                <Crown className="w-5 h-5 text-white" />
+              </div>
+              <h3 className="font-bold text-amber-800">
+                Unlock Premium Features
+              </h3>
+            </div>
+
+            <p className="text-amber-700 text-sm mb-4 leading-relaxed">
+              Get unlimited tasks, advanced analytics, priority support, and
+              exclusive features designed for ambitious women in tech.
+            </p>
+
+            <div className="flex items-center gap-4 text-xs text-amber-600 mb-4">
+              <div className="flex items-center gap-1">
+                <Star className="w-3 h-3 fill-current" />
+                <span>Unlimited Tasks</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Star className="w-3 h-3 fill-current" />
+                <span>Advanced Analytics</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Star className="w-3 h-3 fill-current" />
+                <span>Priority Support</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <Button
+          onClick={createCheckout}
+          disabled={isCreatingCheckout || !products || products.length === 0}
+          className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold shadow-md"
+        >
+          {isCreatingCheckout ? (
+            <>
+              <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+              Processing...
+            </>
+          ) : (
+            <>
+              <Crown className="w-4 h-4 mr-2" />
+              Upgrade to Pro
+            </>
+          )}
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
 function DashboardHeader() {
+  const { data: products, isLoading } = useGetProducts();
+  const [isCreatingCheckout, setIsCreatingCheckout] = useState(false);
+
+  const handleUpgrade = async () => {
+    if (!products || products.length === 0) return;
+
+    setIsCreatingCheckout(true);
+    try {
+      const response = await fetch("/api/polar/checkout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          products: [products[1]?.id || products[0]?.id], // Use Pro plan or first available
+        }),
+      });
+
+      if (response.ok) {
+        const checkoutUrl = await response.json();
+        window.location.href = checkoutUrl;
+      } else {
+        console.error("Failed to create checkout");
+      }
+    } catch (error) {
+      console.error("Error creating checkout:", error);
+    } finally {
+      setIsCreatingCheckout(false);
+    }
+  };
+
   return (
     <Card className="bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 border-0 text-white">
       <CardContent className="p-6">
@@ -140,6 +279,30 @@ function DashboardHeader() {
           </div>
 
           <div className="flex items-center gap-3">
+            <Button
+              onClick={handleUpgrade}
+              disabled={
+                isCreatingCheckout ||
+                isLoading ||
+                !products ||
+                products.length === 0
+              }
+              size="sm"
+              className="bg-gradient-to-r from-pink-500 via-pink-500 to-pink-500 border-0 text-white"
+            >
+              {isCreatingCheckout ? (
+                <>
+                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                  Upgrading...
+                </>
+              ) : (
+                <>
+                  <Crown className="w-4 h-4 mr-2" />
+                  Upgrade
+                </>
+              )}
+            </Button>
+
             <UserPreferencesDialog />
 
             <Link href="/">
@@ -291,8 +454,10 @@ function UpcomingDeadlines() {
 
   // Get tasks with upcoming deadlines
   const upcomingTasks = tasks
-    .filter(task => task.dueDate && !task.completed)
-    .sort((a, b) => new Date(a.dueDate!).getTime() - new Date(b.dueDate!).getTime())
+    .filter((task) => task.dueDate && !task.completed)
+    .sort(
+      (a, b) => new Date(a.dueDate!).getTime() - new Date(b.dueDate!).getTime()
+    )
     .slice(0, 3);
 
   if (upcomingTasks.length === 0) {
@@ -381,10 +546,10 @@ export default function DashboardPage() {
   // Sync user when component mounts
   useEffect(() => {
     if (user?.emailAddresses?.[0]?.emailAddress) {
-      fetch('/api/user/sync', {
-        method: 'POST',
+      fetch("/api/users/sync", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           email: user.emailAddresses[0].emailAddress,
