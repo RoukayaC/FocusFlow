@@ -243,7 +243,7 @@ function DashboardHeader() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          products: [products[1]?.id || products[0]?.id], // Use Pro plan or first available
+          products: [products[1]?.id || products[0]?.id], 
         }),
       });
 
