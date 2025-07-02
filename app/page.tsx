@@ -363,28 +363,64 @@ export default function WelcomePage() {
 
         {/* Pricing Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-7xl mx-auto">
-          {products &&
-            products.map((p) => (
-              <Card className="p-8 border border-gray-200 dark:border-gray-800 rounded-3xl shadow-md transition hover:shadow-xl">
-                <CardContent className="text-center">
-                  <h3 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">
-                    Free
-                  </h3>
-                  <p className="text-gray-500 mb-6">Start with the basics</p>
-                  <p className="text-4xl font-extrabold text-gray-900 dark:text-white mb-6">
-                    $0<span className="text-lg font-normal">/mo</span>
-                  </p>
-                  <ul className="text-sm text-gray-700 dark:text-gray-300 space-y-3 mb-6">
-                    <li>✔ 1 Project</li>
-                    <li>✔ Community Support</li>
-                    <li>✔ Basic Analytics</li>
-                  </ul>
-                  <button className="bg-gray-900 text-white px-6 py-2 rounded-full hover:bg-gray-800 transition">
-                    Get Started
-                  </button>
+          {products?.map((p, idx) => {
+            const isPopular = idx === 1;
+            return (
+              <Card
+                key={p.id || idx}
+                className={`relative flex flex-col items-center p-10 rounded-3xl border-0 shadow-xl
+            bg-gradient-to-br from-white via-purple-50 to-pink-50 dark:from-gray-900 dark:via-purple-900/30 dark:to-pink-900/20
+            transition-transform hover:scale-105 hover:shadow-2xl
+            ${isPopular ? "ring-4 ring-purple-400/30 z-10 scale-105" : ""}
+          `}
+              >
+                <CardContent className="flex flex-col items-center gap-4 p-0 w-full">
+                  {isPopular && (
+                    <Badge className="absolute top-6 right-6 bg-gradient-to-r from-pink-500 to-purple-500 text-white px-4 py-1 text-xs font-bold shadow-lg">
+                      Most Popular
+                    </Badge>
+                  )}
+
+                  <div className="text-3xl font-extrabold text-gray-900 dark:text-white mb-2">
+                    {p.name}
+                  </div>
+
+                  <div className="flex items-end gap-1 mb-2">
+                    <span className="text-4xl font-bold text-purple-600 dark:text-purple-400">
+                      {p.prices
+                        ? `$${
+                            p.prices[0].amountType === "fixed" &&
+                            p.prices[0].priceAmount / 100
+                          }`
+                        : "Free"}
+                    </span>
+                    {p.prices && (
+                      <span className="text-base text-gray-500 dark:text-gray-300 mb-1">
+                        /mo
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="mb-6 text-gray-600 dark:text-gray-300 text-base min-h-[48px]">
+                    {p.description}
+                  </div>
+
+                  <Button
+                    size="lg"
+                    className={`w-full py-3 rounded-xl font-semibold text-lg transition
+                ${
+                  isPopular
+                    ? "bg-gradient-to-r from-pink-500 to-purple-500 text-white shadow-lg hover:from-pink-600 hover:to-purple-600"
+                    : "bg-white text-purple-600 border border-purple-200 hover:bg-purple-50 dark:bg-gray-900 dark:text-purple-300 dark:border-purple-900/40"
+                }
+              `}
+                  >
+                    {"Get Started"}
+                  </Button>
                 </CardContent>
               </Card>
-            ))}
+            );
+          })}
         </div>
       </section>
 
