@@ -22,6 +22,7 @@ const app = new Hono()
 
     const result = await polar.checkouts.create({
       products,
+      successUrl: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`,
     });
     return c.json(result.url, 201);
   });
