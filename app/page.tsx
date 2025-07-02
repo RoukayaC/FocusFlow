@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useGetProducts } from "@/features/polar/api/use-get-products";
+import { useCreateCheckout } from "@/features/polar/api/use-create-checkout";
 
 interface PricingSectionProps {
   showAuthRequired?: boolean;
@@ -30,35 +31,7 @@ interface PricingSectionProps {
 
 function PricingSection({ showAuthRequired = false }: PricingSectionProps) {
   const { data: products, isLoading } = useGetProducts();
-  const [isCreatingCheckout, setIsCreatingCheckout] = useState<string | null>(
-    null
-  );
-
-  const createCheckout = async (productId: string) => {
-    setIsCreatingCheckout(productId);
-    try {
-      const response = await fetch("/api/polar/checkout", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          products: [productId],
-        }),
-      });
-
-      if (response.ok) {
-        const checkoutUrl = await response.json();
-        window.location.href = checkoutUrl;
-      } else {
-        console.error("Failed to create checkout");
-      }
-    } catch (error) {
-      console.error("Error creating checkout:", error);
-    } finally {
-      setIsCreatingCheckout(null);
-    }
-  };
+  const { mutate: createCheckout, isPending } = useCreateCheckout();
 
   if (isLoading) {
     return (
@@ -269,15 +242,14 @@ function PricingSection({ showAuthRequired = false }: PricingSectionProps) {
                   ) : (
                     <Button
                       size="lg"
-                      onClick={() => createCheckout(p.id)}
-                      disabled={isCreatingCheckout === p.id}
+                        onClick={() => {createCheckout(p.id)}}
                       className={`w-full py-3 rounded-xl font-semibold text-lg transition ${
                         isPopular
                           ? "bg-gradient-to-r from-pink-500 to-purple-500 text-white shadow-lg hover:from-pink-600 hover:to-purple-600"
                           : "bg-white text-purple-600 border border-purple-200 hover:bg-purple-50 dark:bg-gray-900 dark:text-purple-300 dark:border-purple-900/40"
                       }`}
                     >
-                      {isCreatingCheckout === p.id ? (
+                      {isPending ? (
                         <>
                           <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
                           Processing...
