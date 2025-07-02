@@ -17,13 +17,303 @@ import {
   ArrowRight,
   Star,
   LogIn,
+  Crown,
+  Lock,
+  RefreshCw,
 } from "lucide-react";
 import Link from "next/link";
 import { useGetProducts } from "@/features/polar/api/use-get-products";
 
+interface PricingSectionProps {
+  showAuthRequired?: boolean;
+}
+
+function PricingSection({ showAuthRequired = false }: PricingSectionProps) {
+  const { data: products, isLoading } = useGetProducts();
+  const [isCreatingCheckout, setIsCreatingCheckout] = useState<string | null>(
+    null
+  );
+
+  const createCheckout = async (productId: string) => {
+    setIsCreatingCheckout(productId);
+    try {
+      const response = await fetch("/api/polar/checkout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          products: [productId],
+        }),
+      });
+
+      if (response.ok) {
+        const checkoutUrl = await response.json();
+        window.location.href = checkoutUrl;
+      } else {
+        console.error("Failed to create checkout");
+      }
+    } catch (error) {
+      console.error("Error creating checkout:", error);
+    } finally {
+      setIsCreatingCheckout(null);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <section className="container mx-auto px-4 py-24">
+        <div className="max-w-3xl mx-auto text-center mb-20">
+          <h2 className="text-5xl font-extrabold text-gray-900 dark:text-white mb-4">
+            Flexible Plans for
+            <span className="bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+              {" "}
+              Every Stage
+            </span>
+          </h2>
+          <p className="text-lg text-gray-600 dark:text-gray-300">
+            Choose a plan that fits your needs. No hidden fees. Cancel anytime.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-7xl mx-auto">
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="h-96 bg-white rounded-3xl p-10 animate-pulse"
+            >
+              <div className="space-y-4">
+                <div className="h-8 bg-gray-200 rounded"></div>
+                <div className="h-12 bg-gray-200 rounded"></div>
+                <div className="h-16 bg-gray-200 rounded"></div>
+                <div className="h-12 bg-gray-200 rounded"></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className="container mx-auto px-4 py-24">
+      {/* Header */}
+      <div className="max-w-3xl mx-auto text-center mb-20">
+        <h2 className="text-5xl font-extrabold text-gray-900 dark:text-white mb-4">
+          Flexible Plans for
+          <span className="bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+            {" "}
+            Every Stage
+          </span>
+        </h2>
+        <p className="text-lg text-gray-600 dark:text-gray-300">
+          Choose a plan that fits your needs. No hidden fees. Cancel anytime.
+        </p>
+        {showAuthRequired && (
+          <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+            <div className="flex items-center justify-center gap-2 text-amber-800">
+              <Lock className="w-5 h-5" />
+              <span className="font-medium">Sign in required to upgrade</span>
+            </div>
+            <p className="text-sm text-amber-700 mt-2">
+              Please sign in to your account to access premium features and
+              billing.
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Pricing Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-7xl mx-auto">
+        {products?.map((p, idx) => {
+          const isPopular = idx === 1;
+          const isFree = !p.prices || p.prices.length === 0;
+
+          return (
+            <Card
+              key={p.id || idx}
+              className={`relative flex flex-col items-center p-10 rounded-3xl border-0 shadow-xl
+                bg-gradient-to-br from-white via-purple-50 to-pink-50 dark:from-gray-900 dark:via-purple-900/30 dark:to-pink-900/20
+                transition-transform hover:scale-105 hover:shadow-2xl
+                ${isPopular ? "ring-4 ring-purple-400/30 z-10 scale-105" : ""}
+                ${showAuthRequired && !isFree ? "opacity-75" : ""}
+              `}
+            >
+              <CardContent className="flex flex-col items-center gap-4 p-0 w-full">
+                {isPopular && (
+                  <Badge className="absolute top-6 right-6 bg-gradient-to-r from-pink-500 to-purple-500 text-white px-4 py-1 text-xs font-bold shadow-lg">
+                    Most Popular
+                  </Badge>
+                )}
+
+                <div className="text-3xl font-extrabold text-gray-900 dark:text-white mb-2">
+                  {p.name}
+                </div>
+
+                <div className="flex items-end gap-1 mb-2">
+                  <span className="text-4xl font-bold text-purple-600 dark:text-purple-400">
+                    {isFree ? "Free" : `${p.prices[0].priceAmount / 100}`}
+                  </span>
+                  {!isFree && (
+                    <span className="text-base text-gray-500 dark:text-gray-300 mb-1">
+                      /mo
+                    </span>
+                  )}
+                </div>
+
+                <div className="mb-6 text-gray-600 dark:text-gray-300 text-base min-h-[48px] text-center">
+                  {p.description}
+                </div>
+
+                {/* Feature List */}
+                <div className="mb-6 space-y-2 w-full">
+                  {idx === 0 && (
+                    <>
+                      <div className="flex items-center text-sm text-gray-600">
+                        <Star className="w-4 h-4 mr-2 text-green-500 fill-current" />
+                        Up to 50 tasks
+                      </div>
+                      <div className="flex items-center text-sm text-gray-600">
+                        <Star className="w-4 h-4 mr-2 text-green-500 fill-current" />
+                        Basic task management
+                      </div>
+                      <div className="flex items-center text-sm text-gray-600">
+                        <Star className="w-4 h-4 mr-2 text-green-500 fill-current" />
+                        Community support
+                      </div>
+                    </>
+                  )}
+                  {idx === 1 && (
+                    <>
+                      <div className="flex items-center text-sm text-gray-600">
+                        <Star className="w-4 h-4 mr-2 text-purple-500 fill-current" />
+                        Unlimited tasks
+                      </div>
+                      <div className="flex items-center text-sm text-gray-600">
+                        <Star className="w-4 h-4 mr-2 text-purple-500 fill-current" />
+                        Advanced analytics
+                      </div>
+                      <div className="flex items-center text-sm text-gray-600">
+                        <Star className="w-4 h-4 mr-2 text-purple-500 fill-current" />
+                        Priority support
+                      </div>
+                      <div className="flex items-center text-sm text-gray-600">
+                        <Star className="w-4 h-4 mr-2 text-purple-500 fill-current" />
+                        Custom categories
+                      </div>
+                    </>
+                  )}
+                  {idx === 2 && (
+                    <>
+                      <div className="flex items-center text-sm text-gray-600">
+                        <Crown className="w-4 h-4 mr-2 text-amber-500" />
+                        Everything in Pro
+                      </div>
+                      <div className="flex items-center text-sm text-gray-600">
+                        <Crown className="w-4 h-4 mr-2 text-amber-500" />
+                        Team collaboration
+                      </div>
+                      <div className="flex items-center text-sm text-gray-600">
+                        <Crown className="w-4 h-4 mr-2 text-amber-500" />
+                        Advanced integrations
+                      </div>
+                      <div className="flex items-center text-sm text-gray-600">
+                        <Crown className="w-4 h-4 mr-2 text-amber-500" />
+                        1-on-1 coaching calls
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                <SignedOut>
+                  {isFree ? (
+                    <SignInButton mode="modal">
+                      <Button
+                        size="lg"
+                        className="w-full py-3 rounded-xl font-semibold text-lg transition bg-white text-purple-600 border border-purple-200 hover:bg-purple-50"
+                      >
+                        Get Started Free
+                      </Button>
+                    </SignInButton>
+                  ) : (
+                    <SignInButton mode="modal">
+                      <Button
+                        size="lg"
+                        disabled={showAuthRequired}
+                        className={`w-full py-3 rounded-xl font-semibold text-lg transition relative ${
+                          isPopular
+                            ? "bg-gradient-to-r from-pink-500 to-purple-500 text-white shadow-lg hover:from-pink-600 hover:to-purple-600"
+                            : "bg-white text-purple-600 border border-purple-200 hover:bg-purple-50 dark:bg-gray-900 dark:text-purple-300 dark:border-purple-900/40"
+                        } ${
+                          showAuthRequired
+                            ? "opacity-50 cursor-not-allowed"
+                            : ""
+                        }`}
+                      >
+                        {showAuthRequired && <Lock className="w-4 h-4 mr-2" />}
+                        Sign In to Upgrade
+                      </Button>
+                    </SignInButton>
+                  )}
+                </SignedOut>
+
+                <SignedIn>
+                  {isFree ? (
+                    <Link href="/dashboard">
+                      <Button
+                        size="lg"
+                        className="w-full py-3 rounded-xl font-semibold text-lg transition bg-white text-purple-600 border border-purple-200 hover:bg-purple-50"
+                      >
+                        Go to Dashboard
+                      </Button>
+                    </Link>
+                  ) : (
+                    <Button
+                      size="lg"
+                      onClick={() => createCheckout(p.id)}
+                      disabled={isCreatingCheckout === p.id}
+                      className={`w-full py-3 rounded-xl font-semibold text-lg transition ${
+                        isPopular
+                          ? "bg-gradient-to-r from-pink-500 to-purple-500 text-white shadow-lg hover:from-pink-600 hover:to-purple-600"
+                          : "bg-white text-purple-600 border border-purple-200 hover:bg-purple-50 dark:bg-gray-900 dark:text-purple-300 dark:border-purple-900/40"
+                      }`}
+                    >
+                      {isCreatingCheckout === p.id ? (
+                        <>
+                          <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                          Processing...
+                        </>
+                      ) : (
+                        <>
+                          {isPopular && <Crown className="w-4 h-4 mr-2" />}
+                          Upgrade Now
+                        </>
+                      )}
+                    </Button>
+                  )}
+                </SignedIn>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 export default function WelcomePage() {
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
-  const { data: products, isLoading } = useGetProducts();
+  const [showAuthRequiredPricing] = useState(false);
+
+  const scrollToPricing = () => {
+    const pricingSection = document.getElementById("pricing-section");
+    if (pricingSection) {
+      pricingSection.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
+  };
+
   const testimonials = [
     {
       name: "Sarah Chen",
@@ -192,6 +482,14 @@ export default function WelcomePage() {
                   Start Your Journey
                 </Button>
               </SignInButton>
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={scrollToPricing}
+                className="border-purple-200 text-purple-600 hover:bg-purple-50 px-8 py-4 text-lg font-semibold"
+              >
+                View Pricing
+              </Button>
             </SignedOut>
 
             <SignedIn>
@@ -346,83 +644,16 @@ export default function WelcomePage() {
         </div>
       </section>
 
-      <section className="container mx-auto px-4 py-24">
-        {/* Header */}
-        <div className="max-w-3xl mx-auto text-center mb-20">
-          <h2 className="text-5xl font-extrabold text-gray-900 dark:text-white mb-4">
-            Flexible Plans for
-            <span className="bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
-              {" "}
-              Every Stage
-            </span>
-          </h2>
-          <p className="text-lg text-gray-600 dark:text-gray-300">
-            Choose a plan that fits your needs. No hidden fees. Cancel anytime.
-          </p>
-        </div>
+      {/* Pricing Section */}
+      <div id="pricing-section">
+        <SignedOut>
+          <PricingSection showAuthRequired={showAuthRequiredPricing} />
+        </SignedOut>
 
-        {/* Pricing Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-7xl mx-auto">
-          {products?.map((p, idx) => {
-            const isPopular = idx === 1;
-            return (
-              <Card
-                key={p.id || idx}
-                className={`relative flex flex-col items-center p-10 rounded-3xl border-0 shadow-xl
-            bg-gradient-to-br from-white via-purple-50 to-pink-50 dark:from-gray-900 dark:via-purple-900/30 dark:to-pink-900/20
-            transition-transform hover:scale-105 hover:shadow-2xl
-            ${isPopular ? "ring-4 ring-purple-400/30 z-10 scale-105" : ""}
-          `}
-              >
-                <CardContent className="flex flex-col items-center gap-4 p-0 w-full">
-                  {isPopular && (
-                    <Badge className="absolute top-6 right-6 bg-gradient-to-r from-pink-500 to-purple-500 text-white px-4 py-1 text-xs font-bold shadow-lg">
-                      Most Popular
-                    </Badge>
-                  )}
-
-                  <div className="text-3xl font-extrabold text-gray-900 dark:text-white mb-2">
-                    {p.name}
-                  </div>
-
-                  <div className="flex items-end gap-1 mb-2">
-                    <span className="text-4xl font-bold text-purple-600 dark:text-purple-400">
-                      {p.prices
-                        ? `$${
-                            p.prices[0].amountType === "fixed" &&
-                            p.prices[0].priceAmount / 100
-                          }`
-                        : "Free"}
-                    </span>
-                    {p.prices && (
-                      <span className="text-base text-gray-500 dark:text-gray-300 mb-1">
-                        /mo
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="mb-6 text-gray-600 dark:text-gray-300 text-base min-h-[48px]">
-                    {p.description}
-                  </div>
-
-                  <Button
-                    size="lg"
-                    className={`w-full py-3 rounded-xl font-semibold text-lg transition
-                ${
-                  isPopular
-                    ? "bg-gradient-to-r from-pink-500 to-purple-500 text-white shadow-lg hover:from-pink-600 hover:to-purple-600"
-                    : "bg-white text-purple-600 border border-purple-200 hover:bg-purple-50 dark:bg-gray-900 dark:text-purple-300 dark:border-purple-900/40"
-                }
-              `}
-                  >
-                    {"Get Started"}
-                  </Button>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-      </section>
+        <SignedIn>
+          <PricingSection />
+        </SignedIn>
+      </div>
 
       {/* CTA Section */}
       <section className="container mx-auto px-4 py-16">
