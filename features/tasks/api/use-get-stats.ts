@@ -1,26 +1,21 @@
-import { useQuery } from "@tanstack/react-query"
+"use client";
 
-export interface TaskStats {
-  total: number
-  completed: number
-  pending: number
-  overdue: number
-}
+import { client } from "@/lib/hono";
+import { useQuery } from "@tanstack/react-query";
+import { InferResponseType } from "hono";
+
+type ResponseType = InferResponseType<typeof client.api.tasks.$get>;
 
 export const useGetStats = () => {
-  const query = useQuery<TaskStats, Error>({
+  useQuery<ResponseType, Error>({
     queryKey: ["stats"],
     queryFn: async () => {
-      const response = await fetch("/api/stats")
+      const response = await client.api.tasks.$get();
 
       if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || "Failed to fetch stats")
+        throw new Error("Failed to fetch stats");
       }
-
-      return response.json()
+      return await response.json();
     },
-  })
-
-  return query
-}
+  });
+};
