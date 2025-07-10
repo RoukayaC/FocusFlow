@@ -1,27 +1,20 @@
-import { useQuery } from "@tanstack/react-query"
-import type { User } from "./use-sync-user"
+import { useQuery } from "@tanstack/react-query";
+import { client } from "@/lib/hono";
+import { InferResponseType } from "hono";
+
+type ResponseType = InferResponseType<typeof client.api.users.me.$get>;
 
 export const useGetCurrentUser = () => {
-  const query = useQuery<User, Error>({
+  return useQuery<ResponseType, Error>({
     queryKey: ["current-user"],
     queryFn: async () => {
-      const response = await fetch("/api/users/me")
+      const response = await client.api.users.me.$get();
 
       if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || "Failed to fetch current user")
+        throw new Error("Failed to fetch current user");
       }
 
-      const data = await response.json()
-      
-      // Transform the data to ensure dates are Date objects
-      return {
-        ...data,
-        createdAt: new Date(data.createdAt),
-        updatedAt: new Date(data.updatedAt),
-      }
+      return await response.json();
     },
-  })
-
-  return query
-}
+  });
+};
