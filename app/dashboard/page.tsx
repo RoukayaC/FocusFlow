@@ -29,6 +29,7 @@ import { useTasks } from "@/features/tasks/hooks/use-tasks";
 import { usePreferences } from "@/features/preferences/hooks/use-preferences";
 import { useGetProducts } from "@/features/polar/api/use-get-products";
 import type { CreateTaskInput, UpdateTaskInput } from "@/types/task";
+import { client } from "@/lib/hono";
 
 function LoadingSkeleton() {
   return (
@@ -137,14 +138,10 @@ function UpgradeCard() {
 
     setIsCreatingCheckout(true);
     try {
-      const response = await fetch("/api/polar/checkout", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+      const response = await client.api.polar.checkout.$post({
+        json: {
           products: [products[1]?.id || products[0]?.id],
-        }),
+        },
       });
 
       if (response.ok) {
@@ -237,14 +234,10 @@ function DashboardHeader() {
 
     setIsCreatingCheckout(true);
     try {
-      const response = await fetch("/api/polar/checkout", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await client.api.polar.checkout.$post({
+        json: {
+          products: [products[1]?.id || products[0]?.id],
         },
-        body: JSON.stringify({
-          products: [products[1]?.id || products[0]?.id], 
-        }),
       });
 
       if (response.ok) {
