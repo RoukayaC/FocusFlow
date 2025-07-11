@@ -6,6 +6,7 @@ type ResponseType = InferResponseType<typeof client.api.tasks.$get>;
 
 export const useGetTask = (id?: string) => {
   return useQuery<ResponseType, Error>({
+    enabled: !!id,
     queryKey: ["task", { id }],
     queryFn: async () => {
       const response = await client.api.tasks.$get({

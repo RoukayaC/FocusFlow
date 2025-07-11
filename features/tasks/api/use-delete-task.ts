@@ -1,26 +1,26 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { client } from "@/lib/hono";
+import { InferResponseType } from "hono";
 import { toast } from "sonner";
 
-type ResponseType = { message: string };
-type RequestType = {
-  id: string;
-};
+type ResponseType = InferResponseType<
+  (typeof client.api.tasks)[":id"]["$delete"]
+>;
 
-export const useDeleteTask = () => {
+export const useDeleteTask = (id?: string) => {
   const queryClient = useQueryClient();
 
-  const mutation = useMutation<ResponseType, Error, RequestType>({
-    mutationFn: async ({ id }) => {
-      const response = await fetch(`/api/tasks/${id}`, {
-        method: "DELETE",
+  const mutation = useMutation<ResponseType, Error>({
+    mutationFn: async () => {
+      const response = await client.api.tasks[":id"].$delete({
+        param: { id },
       });
 
       if (!response.ok) {
-        const error = await response.json();
         throw new Error("Failed to delete task");
       }
 
-      return response.json();
+      return await response.json();
     },
     onSuccess: () => {
       toast.success("Task deleted successfully!");
