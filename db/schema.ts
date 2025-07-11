@@ -2,10 +2,16 @@ import { pgTable, text, timestamp, boolean, pgEnum } from "drizzle-orm/pg-core";
 import { createId } from "@paralleldrive/cuid2";
 import { z } from "zod";
 
-// Define enums for better type safety
+// Define enums
 export const priorityEnum = pgEnum("priority", ["low", "medium", "high"]);
 export const categoryEnum = pgEnum("category", ["coding", "life", "self-care"]);
 export const themeEnum = pgEnum("theme", ["light", "dark", "system"]);
+export const statusEnum = pgEnum("status", [
+  "active",
+  "canceled",
+  "past_due",
+  "unpaid",
+]);
 
 export const users = pgTable("users", {
   id: text("id")
@@ -28,7 +34,7 @@ export const tasks = pgTable("tasks", {
   title: text("title").notNull(),
   description: text("description"),
   completed: boolean("completed").default(false),
-  priority: priorityEnum("priority").default("medium"),
+  priority: priorityEnum("priority").default("medium").notNull(),
   category: categoryEnum("category").notNull(),
   dueDate: timestamp("due_date", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
@@ -51,10 +57,28 @@ export const userPreferences = pgTable("user_preferences", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 });
 
+export const polarSubscriptions = pgTable("polar_subscriptions", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => createId()),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  status: text("status").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+});
+
 // Zod schemas for validation
 export const prioritySchema = z.enum(["low", "medium", "high"]);
 export const categorySchema = z.enum(["coding", "life", "self-care"]);
 export const themeSchema = z.enum(["light", "dark", "system"]);
+export const statusSchema = z.enum([
+  "active",
+  "canceled",
+  "past_due",
+  "unpaid",
+]);
 
 // User schemas
 export const userSchema = z.object({
@@ -125,13 +149,28 @@ export const newUserPreferencesSchema = z.object({
   updatedAt: z.date().optional(),
 });
 
-// Update schemas (for partial updates)
+//subscription schemas
+export const polarSubscriptionSchema = z.object({
+  id: z.string().cuid2(),
+  userId: z.string().cuid2(),
+  status: z.enum(["active", "canceled", "past_due", "unpaid"]),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+export const newPolarSubscriptionSchema = z.object({
+  id: z.string().cuid2().optional(),
+  userId: z.string().cuid2(),
+  status: statusSchema.default("active"),
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
+});
+
 export const updateTaskSchema = newTaskSchema.partial().omit({ userId: true });
 export const updateUserPreferencesSchema = newUserPreferencesSchema
   .partial()
   .omit({ userId: true });
 
-// API input schemas (for forms/API endpoints)
+// API input schemas
 export const createTaskInputSchema = z.object({
   title: z.string().min(1, "Title is required").max(255, "Title too long"),
   description: z.string().max(1000, "Description too long").optional(),
@@ -150,14 +189,21 @@ export const updateUserPreferencesInputSchema = z.object({
   notifications: z.boolean().optional(),
   motivationalMessages: z.boolean().optional(),
 });
-
-// Type exports for TypeScript
+export const createPolarSubscriptionInputSchema = z.object({
+  userId: z.string().cuid2(),
+  status: statusSchema.default("active"),
+  startDate: z.string().datetime().default(new Date().toISOString()),
+  endDate: z.string().datetime().nullable().optional(),
+});
+// Type exports
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type Task = typeof tasks.$inferSelect;
 export type NewTask = typeof tasks.$inferInsert;
 export type UserPreferences = typeof userPreferences.$inferSelect;
 export type NewUserPreferences = typeof userPreferences.$inferInsert;
+export type PolarSubscription = typeof polarSubscriptions.$inferSelect;
+export type NewPolarSubscription = typeof polarSubscriptions.$inferInsert;
 
 // Zod inferred types
 export type UserType = z.infer<typeof userSchema>;
@@ -170,4 +216,7 @@ export type CreateTaskInput = z.infer<typeof createTaskInputSchema>;
 export type UpdateTaskInput = z.infer<typeof updateTaskInputSchema>;
 export type UpdateUserPreferencesInput = z.infer<
   typeof updateUserPreferencesInputSchema
+>;
+export type CreatePolarSubscriptionInput = z.infer<
+  typeof createPolarSubscriptionInputSchema
 >;
