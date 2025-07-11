@@ -8,22 +8,25 @@ import { tasks, users } from "@/db/schema";
 import { eq, and, desc, inArray } from "drizzle-orm";
 import { createId } from "@paralleldrive/cuid2";
 import { createTaskInputSchema, updateTaskInputSchema } from "@/types/task";
+import { HTTPException } from "hono/http-exception";
 
 const app = new Hono()
   .get("/", clerkMiddleware(), async (c) => {
     const auth = getAuth(c);
     if (!auth?.userId) {
-      return c.json({ error: "Unauthorized" }, 401);
+      throw new HTTPException(401, {
+        message: "Unauthorized",
+      });
     }
 
     try {
       const user = await getCurrentUser(auth.userId);
       if (!user) {
-        return c.json({ error: "User not found" }, 404);
+        throw new HTTPException(404, {
+          message: "User not found",
+        });
       }
-
-      const database = db;
-      const userTasks = await database
+      const userTasks = await db
         .select()
         .from(tasks)
         .where(eq(tasks.userId, user.id))
@@ -32,7 +35,9 @@ const app = new Hono()
       return c.json(userTasks);
     } catch (error) {
       console.error("Error fetching tasks:", error);
-      return c.json({ error: "Failed to fetch tasks" }, 500);
+      throw new HTTPException(500, {
+        message: "Failed to fetch tasks",
+      });
     }
   })
   .post(
@@ -44,13 +49,17 @@ const app = new Hono()
       const validatedData = c.req.valid("json");
 
       if (!auth?.userId) {
-        return c.json({ error: "Unauthorized" }, 401);
+        throw new HTTPException(401, {
+          message: "Unauthorized",
+        });
       }
 
       try {
         const user = await getCurrentUser(auth.userId);
         if (!user) {
-          return c.json({ error: "User not found" }, 404);
+          throw new HTTPException(404, {
+            message: "User not found",
+          });
         }
 
         const database = db;
@@ -73,7 +82,9 @@ const app = new Hono()
         return c.json(newTasks[0], 201);
       } catch (error) {
         console.error("Error creating task:", error);
-        return c.json({ error: "Failed to create task" }, 400);
+        throw new HTTPException(400, {
+          message: "Failed to create task",
+        });
       }
     }
   )
@@ -91,17 +102,23 @@ const app = new Hono()
       const { id } = c.req.valid("param");
 
       if (!id) {
-        return c.json({ error: "Missing id" }, 400);
+        throw new HTTPException(400, {
+          message: "Missing id",
+        });
       }
 
       if (!auth?.userId) {
-        return c.json({ error: "Unauthorized" }, 401);
+        throw new HTTPException(401, {
+          message: "Unauthorized",
+        });
       }
 
       try {
         const user = await getCurrentUser(auth.userId);
         if (!user) {
-          return c.json({ error: "User not found" }, 404);
+          throw new HTTPException(404, {
+            message: "User not found",
+          });
         }
 
         const database = db;
@@ -112,13 +129,17 @@ const app = new Hono()
           .limit(1);
 
         if (!task) {
-          return c.json({ error: "Task not found" }, 404);
+          throw new HTTPException(404, {
+            message: "Task not found",
+          });
         }
 
         return c.json(task);
       } catch (error) {
         console.error("Error fetching task:", error);
-        return c.json({ error: "Failed to fetch task" }, 500);
+        throw new HTTPException(500, {
+          message: "Failed to fetch task",
+        });
       }
     }
   )
@@ -138,17 +159,23 @@ const app = new Hono()
       const validatedData = c.req.valid("json");
 
       if (!id) {
-        return c.json({ error: "Missing id" }, 400);
+        throw new HTTPException(400, {
+          message: "Missing id",
+        });
       }
 
       if (!auth?.userId) {
-        return c.json({ error: "Unauthorized" }, 401);
+        throw new HTTPException(404, {
+          message: "Unauthorized",
+        });
       }
 
       try {
         const user = await getCurrentUser(auth.userId);
         if (!user) {
-          return c.json({ error: "User not found" }, 404);
+          throw new HTTPException(404, {
+            message: "User not found",
+          });
         }
 
         const updateData: any = {
@@ -170,13 +197,17 @@ const app = new Hono()
           .returning();
 
         if (!updatedTask) {
-          return c.json({ error: "Task not found" }, 404);
+          throw new HTTPException(404, {
+            message: "Task not found",
+          });
         }
 
         return c.json(updatedTask);
       } catch (error) {
         console.error("Error updating task:", error);
-        return c.json({ error: "Failed to update task" }, 400);
+        throw new HTTPException(400, {
+          message: "Failed to update task",
+        });
       }
     }
   )
@@ -194,17 +225,23 @@ const app = new Hono()
       const { id } = c.req.valid("param");
 
       if (!id) {
-        return c.json({ error: "Missing id" }, 400);
+        throw new HTTPException(400, {
+          message: "Missing id",
+        });
       }
 
       if (!auth?.userId) {
-        return c.json({ error: "Unauthorized" }, 401);
+        throw new HTTPException(401, {
+          message: "Unauthorized",
+        });
       }
 
       try {
         const user = await getCurrentUser(auth.userId);
         if (!user) {
-          return c.json({ error: "User not found" }, 404);
+          throw new HTTPException(404, {
+            message: "User not found",
+          });
         }
 
         const database = db;
@@ -214,13 +251,17 @@ const app = new Hono()
           .returning();
 
         if (!deletedTask) {
-          return c.json({ error: "Task not found" }, 404);
+          throw new HTTPException(404, {
+            message: "Task not found",
+          });
         }
 
         return c.json({ message: "Task deleted successfully" });
       } catch (error) {
         console.error("Error deleting task:", error);
-        return c.json({ error: "Failed to delete task" }, 500);
+        throw new HTTPException(500, {
+          message: "Failed to delete task",
+        });
       }
     }
   )
@@ -238,13 +279,17 @@ const app = new Hono()
       const { ids } = c.req.valid("json");
 
       if (!auth?.userId) {
-        return c.json({ error: "Unauthorized" }, 401);
+        throw new HTTPException(401, {
+          message: "Unauthorized",
+        });
       }
 
       try {
         const user = await getCurrentUser(auth.userId);
         if (!user) {
-          return c.json({ error: "User not found" }, 404);
+          throw new HTTPException(404, {
+            message: "User not found",
+          });
         }
 
         const database = db;
@@ -259,7 +304,9 @@ const app = new Hono()
         });
       } catch (error) {
         console.error("Error bulk deleting tasks:", error);
-        return c.json({ error: "Failed to delete tasks" }, 500);
+        throw new HTTPException(500, {
+          message: "Failed to delete tasks",
+        });
       }
     }
   );

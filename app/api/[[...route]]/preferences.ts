@@ -7,18 +7,23 @@ import { eq } from "drizzle-orm";
 import { createId } from "@paralleldrive/cuid2";
 import { userPreferencesInputSchema } from "@/types/task";
 import { getCurrentUser } from "@/db/operations";
+import { HTTPException } from "hono/http-exception";
 
 const app = new Hono()
   .get("/", clerkMiddleware(), async (c) => {
     const auth = getAuth(c);
     if (!auth?.userId) {
-      return c.json({ error: "Unauthorized" }, 401);
+      throw new HTTPException(401, {
+        message: "Unauthorized",
+      });
     }
 
     try {
       const user = await getCurrentUser(auth.userId);
       if (!user) {
-        return c.json({ error: "User not found" }, 404);
+        throw new HTTPException(404, {
+          message: "User not found",
+        });
       }
 
       const database = db;
@@ -48,7 +53,9 @@ const app = new Hono()
       return c.json(userPrefs[0]);
     } catch (error) {
       console.error("Error fetching preferences:", error);
-      return c.json({ error: "Failed to fetch preferences" }, 500);
+      throw new HTTPException(500, {
+        message: "failed to fetch preferences",
+      });
     }
   })
   .patch(
@@ -60,13 +67,17 @@ const app = new Hono()
       const validatedData = c.req.valid("json");
 
       if (!auth?.userId) {
-        return c.json({ error: "Unauthorized" }, 401);
+        throw new HTTPException(401, {
+          message: "unauthorized",
+        });
       }
 
       try {
         const user = await getCurrentUser(auth.userId);
         if (!user) {
-          return c.json({ error: "User not found" }, 404);
+          throw new HTTPException(404, {
+            message: "User not found",
+          });
         }
 
         const database = db;
@@ -80,13 +91,17 @@ const app = new Hono()
           .returning();
 
         if (updatedPrefs.length === 0) {
-          return c.json({ error: "Preferences not found" }, 404);
+          throw new HTTPException(404, {
+            message: "Preferences not found",
+          });
         }
 
         return c.json(updatedPrefs[0]);
       } catch (error) {
         console.error("Error updating preferences:", error);
-        return c.json({ error: "Failed to update preferences" }, 500);
+        throw new HTTPException(500, {
+          message: "Failed to update preferences",
+        });
       }
     }
   );

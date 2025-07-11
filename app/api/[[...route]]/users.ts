@@ -6,6 +6,7 @@ import { db } from "@/db/drizzle";
 import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { createId } from "@paralleldrive/cuid2";
+import { HTTPException } from "hono/http-exception";
 
 const syncUserSchema = z.object({
   email: z.string().email("Invalid email format"),
@@ -22,7 +23,9 @@ const app = new Hono()
       const { email, name } = c.req.valid("json");
 
       if (!auth?.userId) {
-        return c.json({ error: "Unauthorized" }, 401);
+        throw new HTTPException(401, {
+          message: "Unauthorized",
+        });
       }
 
       try {
@@ -67,7 +70,9 @@ const app = new Hono()
         return c.json(newUser, 201);
       } catch (error) {
         console.error("Error syncing user:", error);
-        return c.json({ error: "Failed to sync user" }, 500);
+        throw new HTTPException(500, {
+          message: "Failed to sync user",
+        });
       }
     }
   )
@@ -75,7 +80,9 @@ const app = new Hono()
     const auth = getAuth(c);
 
     if (!auth?.userId) {
-      return c.json({ error: "Unauthorized" }, 401);
+      throw new HTTPException(401, {
+        message: "Unauthorized",
+      });
     }
 
     try {
@@ -87,13 +94,17 @@ const app = new Hono()
         .limit(1);
 
       if (!user) {
-        return c.json({ error: "User not found" }, 404);
+        throw new HTTPException(404, {
+          message: "User not found",
+        });
       }
 
       return c.json(user);
     } catch (error) {
       console.error("Error fetching user:", error);
-      return c.json({ error: "Failed to fetch user" }, 500);
+      throw new HTTPException(500, {
+        message: "Failed to fetch user",
+      });
     }
   });
 
