@@ -4,30 +4,32 @@ export const prioritySchema = z.enum(["low", "medium", "high"]);
 export const categorySchema = z.enum(["coding", "life", "self-care"]);
 export const themeSchema = z.enum(["light", "dark", "system"]);
 
-export const createTaskInputSchema = z.object({
-  title: z.string().min(1, "Title is required").max(255, "Title too long"),
-  description: z.string().max(1000, "Description too long").optional(),
-  priority: prioritySchema.default("medium"),
-  category: categorySchema,
-  dueDate: z.string().datetime().optional().or(z.date().optional()),
-});
-
-export const updateTaskInputSchema = createTaskInputSchema.partial().extend({
-  completed: z.boolean().optional(),
-});
-
 export const taskSchema = z.object({
   id: z.string().cuid2(),
   userId: z.string().cuid2(),
   title: z.string().min(1),
   description: z.string().nullable(),
-  completed: z.boolean(),
+  completed: z.boolean().nullable(),
   priority: prioritySchema,
   category: categorySchema,
-  dueDate: z.date().nullable(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
+  dueDate: z.string().datetime().nullable(),
+  createdAt: z.string().datetime().nullable(),
+  updatedAt: z.string().datetime().nullable(),
 });
+
+
+export const createTaskInputSchema = taskSchema.pick({
+  title: true,
+  description: true,
+  priority: true,
+  category: true,
+  dueDate: true,
+})
+
+export const updateTaskInputSchema = createTaskInputSchema.partial().extend({
+  completed: z.boolean().nullable(),
+});
+
 
 // Types inférés
 export type Task = z.infer<typeof taskSchema>;
