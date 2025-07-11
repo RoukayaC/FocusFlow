@@ -1,7 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
+import {
+  SignedIn,
+  SignedOut,
+  SignInButton,
+  useAuth,
+  UserButton,
+} from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -25,11 +31,8 @@ import Link from "next/link";
 import { useGetProducts } from "@/features/polar/api/use-get-products";
 import { useCreateCheckout } from "@/features/polar/api/use-create-checkout";
 
-interface PricingSectionProps {
-  showAuthRequired?: boolean;
-}
-
-function PricingSection({ showAuthRequired = false }: PricingSectionProps) {
+function PricingSection() {
+  const { isSignedIn } = useAuth();
   const { data: products, isLoading } = useGetProducts();
   const { mutate: createCheckout, isPending } = useCreateCheckout();
 
@@ -81,7 +84,7 @@ function PricingSection({ showAuthRequired = false }: PricingSectionProps) {
         <p className="text-lg text-gray-600 dark:text-gray-300">
           Choose a plan that fits your needs. No hidden fees. Cancel anytime.
         </p>
-        {showAuthRequired && (
+        {!isSignedIn && (
           <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
             <div className="flex items-center justify-center gap-2 text-amber-800">
               <Lock className="w-5 h-5" />
@@ -108,7 +111,7 @@ function PricingSection({ showAuthRequired = false }: PricingSectionProps) {
                 bg-gradient-to-br from-white via-purple-50 to-pink-50 dark:from-gray-900 dark:via-purple-900/30 dark:to-pink-900/20
                 transition-transform hover:scale-105 hover:shadow-2xl
                 ${isPopular ? "ring-4 ring-purple-400/30 z-10 scale-105" : ""}
-                ${showAuthRequired && !isFree ? "opacity-75" : ""}
+                ${isSignedIn && !isFree ? "opacity-75" : ""}
               `}
             >
               <CardContent className="flex flex-col items-center gap-4 p-0 w-full">
@@ -124,7 +127,12 @@ function PricingSection({ showAuthRequired = false }: PricingSectionProps) {
 
                 <div className="flex items-end gap-1 mb-2">
                   <span className="text-4xl font-bold text-purple-600 dark:text-purple-400">
-                    {isFree ? "Free" : `${p.prices[0].priceAmount / 100}`}
+                    {isFree
+                      ? "Free"
+                      : `${
+                          p.prices[0].amountType === "fixed" &&
+                          p.prices[0].priceAmount / 100
+                        }`}
                   </span>
                   {!isFree && (
                     <span className="text-base text-gray-500 dark:text-gray-300 mb-1">
@@ -211,18 +219,14 @@ function PricingSection({ showAuthRequired = false }: PricingSectionProps) {
                     <SignInButton mode="modal">
                       <Button
                         size="lg"
-                        disabled={showAuthRequired}
+                        disabled={isSignedIn}
                         className={`w-full py-3 rounded-xl font-semibold text-lg transition relative ${
                           isPopular
                             ? "bg-gradient-to-r from-pink-500 to-purple-500 text-white shadow-lg hover:from-pink-600 hover:to-purple-600"
                             : "bg-white text-purple-600 border border-purple-200 hover:bg-purple-50 dark:bg-gray-900 dark:text-purple-300 dark:border-purple-900/40"
-                        } ${
-                          showAuthRequired
-                            ? "opacity-50 cursor-not-allowed"
-                            : ""
-                        }`}
+                        } ${isSignedIn ? "opacity-50 cursor-not-allowed" : ""}`}
                       >
-                        {showAuthRequired && <Lock className="w-4 h-4 mr-2" />}
+                        {isSignedIn && <Lock className="w-4 h-4 mr-2" />}
                         Sign In to Upgrade
                       </Button>
                     </SignInButton>
@@ -242,7 +246,9 @@ function PricingSection({ showAuthRequired = false }: PricingSectionProps) {
                   ) : (
                     <Button
                       size="lg"
-                        onClick={() => {createCheckout(p.id)}}
+                      onClick={() => {
+                        createCheckout(p.id);
+                      }}
                       className={`w-full py-3 rounded-xl font-semibold text-lg transition ${
                         isPopular
                           ? "bg-gradient-to-r from-pink-500 to-purple-500 text-white shadow-lg hover:from-pink-600 hover:to-purple-600"
@@ -274,8 +280,6 @@ function PricingSection({ showAuthRequired = false }: PricingSectionProps) {
 
 export default function WelcomePage() {
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
-  const [showAuthRequiredPricing] = useState(false);
-
   const scrollToPricing = () => {
     const pricingSection = document.getElementById("pricing-section");
     if (pricingSection) {
@@ -468,7 +472,7 @@ export default function WelcomePage() {
               <Link href="/dashboard">
                 <Button
                   size="lg"
-                  className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all"
+                  className="bg-gradient-to-r from-pink-500 toisSignedIn-purple-500 hover:from-pink-600 hover:to-purple-600 text-white px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all"
                 >
                   Go to Dashboard
                   <ArrowRight className="ml-2 w-5 h-5" />
@@ -619,7 +623,7 @@ export default function WelcomePage() {
       {/* Pricing Section */}
       <div id="pricing-section">
         <SignedOut>
-          <PricingSection showAuthRequired={showAuthRequiredPricing} />
+          <PricingSection />
         </SignedOut>
 
         <SignedIn>
