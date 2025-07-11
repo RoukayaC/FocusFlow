@@ -28,23 +28,19 @@ import {
 } from "@/components/ui/alert-dialog";
 import { TaskDialog } from "@/features/tasks/components/task-dialog";
 import type { Task } from "@/types/task";
+import { useDeleteTask } from "../api/use-delete-task";
+import { useEditTask } from "../api/use-edit-task";
+import dayjs from "dayjs";
 
 interface TaskCardProps {
   task: Task;
-  onToggle: (id: string) => void;
-  onUpdate: (id: string, updates: Partial<Task>) => void;
-  onDelete: (id: string) => void;
 }
 
-export function TaskCard({
-  task,
-  onToggle,
-  onUpdate,
-  onDelete,
-}: TaskCardProps) {
+export function TaskCard({ task }: TaskCardProps) {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-
+  const { mutate: deleteTask } = useDeleteTask(task.id);
+  const { mutate: editTask } = useEditTask(task.id);
   const priorityColors = {
     low: "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300",
     medium:
@@ -53,43 +49,31 @@ export function TaskCard({
   };
 
   const handleEdit = (taskData: Omit<Task, "id" | "createdAt">) => {
-    onUpdate(task.id, taskData);
+    editTask(taskData);
     setShowEditDialog(false);
   };
+  const toggleTask = async () => {
 
-  const formatDate = (date: Date) => {
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
+    editTask( { completed: !task.completed })
+  }
+  const formatDate = (date: string) => {
+    const taskDay = dayjs(date);
+    const today = dayjs().startOf("day");
+    const tomorrow = today.add(1, "day");
 
-    const taskDate = new Date(
-      date.getFullYear(),
-      date.getMonth(),
-      date.getDate()
-    );
-
-    if (taskDate.getTime() === today.getTime()) {
+    if (taskDay.isSame(today, "day")) {
       return "Today";
-    } else if (taskDate.getTime() === tomorrow.getTime()) {
+    } else if (taskDay.isSame(tomorrow, "day")) {
       return "Tomorrow";
     } else {
-      return new Intl.DateTimeFormat("en-US", {
-        month: "short",
-        day: "numeric",
-      }).format(date);
+      return taskDay.format("MMM D");
     }
   };
 
   const isOverdue =
     task.dueDate &&
     !task.completed &&
-    new Date() >
-      new Date(
-        task.dueDate.getFullYear(),
-        task.dueDate.getMonth(),
-        task.dueDate.getDate() + 1
-      );
+    dayjs().isAfter(dayjs(task.dueDate).endOf("day"));
 
   return (
     <>
@@ -102,7 +86,7 @@ export function TaskCard({
       >
         <button
           className="flex-shrink-0 mt-0.5 hover:scale-110 transition-transform"
-          onClick={() => onToggle(task.id)}
+          onClick={() => toggleTask()}
           aria-label={
             task.completed ? "Mark as incomplete" : "Mark as complete"
           }
@@ -195,7 +179,6 @@ export function TaskCard({
         open={showEditDialog}
         onOpenChange={setShowEditDialog}
         task={task}
-        onSave={handleEdit}
       />
 
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
@@ -211,7 +194,7 @@ export function TaskCard({
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
-                onDelete(task.id);
+                deleteTask();
                 setShowDeleteDialog(false);
               }}
               className="bg-red-600 hover:bg-red-700 dark:bg-red-900 dark:hover:bg-red-800"

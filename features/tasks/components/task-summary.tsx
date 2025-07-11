@@ -1,17 +1,17 @@
-"use client"
+"use client";
 
-import { Card, CardContent } from "@/components/ui/card"
-import { CheckCheck, ListTodo, Heart, AlertTriangle } from "lucide-react"
+import { Card, CardContent } from "@/components/ui/card";
+import { CheckCheck, ListTodo, Heart, AlertTriangle } from "lucide-react";
+import { useGetStats } from "../api/use-get-stats";
+import { useMemo } from "react";
 
-interface TaskSummaryProps {
-  total: number
-  completed: number
-  pending: number
-  overdue?: number
-}
-
-export function TaskSummary({ total, completed, pending, overdue = 0 }: TaskSummaryProps) {
-  const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0
+export function TaskSummary() {
+  const { data: stats } = useGetStats();
+  const completionRate = useMemo(
+    () =>
+      stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0,
+    [stats]
+  );
 
   return (
     <Card className="bg-white/80 backdrop-blur-sm border-pink-100">
@@ -21,8 +21,10 @@ export function TaskSummary({ total, completed, pending, overdue = 0 }: TaskSumm
             <CheckCheck className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
           </div>
           <div>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Completed</p>
-            <p className="font-semibold text-emerald-600">{completed} tasks</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Completed
+            </p>
+            <p className="font-semibold text-emerald-600">{stats.completed} tasks</p>
           </div>
         </div>
 
@@ -32,18 +34,20 @@ export function TaskSummary({ total, completed, pending, overdue = 0 }: TaskSumm
           </div>
           <div>
             <p className="text-sm text-gray-600 dark:text-gray-400">Pending</p>
-            <p className="font-semibold text-amber-600">{pending} tasks</p>
+            <p className="font-semibold text-amber-600">{stats.pending} tasks</p>
           </div>
         </div>
 
-        {overdue > 0 && (
+        {stats.overdue > 0 && (
           <div className="flex items-center gap-2">
             <div className="bg-gradient-to-br from-red-100 to-orange-100 dark:from-red-900/20 dark:to-orange-900/20 p-2 rounded-lg">
               <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
             </div>
             <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Overdue</p>
-              <p className="font-semibold text-red-600">{overdue} tasks</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Overdue
+              </p>
+              <p className="font-semibold text-red-600">{stats.overdue} tasks</p>
             </div>
           </div>
         )}
@@ -59,5 +63,5 @@ export function TaskSummary({ total, completed, pending, overdue = 0 }: TaskSumm
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

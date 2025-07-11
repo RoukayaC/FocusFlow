@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -9,40 +9,54 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import type { Task, TaskCategory, TaskPriority } from "@/types/task"
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import type { Task, TaskCategory, TaskPriority } from "@/types/task";
+import { useCreateTask } from "../api/use-create-task";
+import dayjs from "dayjs";
 
 interface TaskDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  task?: Task
-  category?: TaskCategory
-  onSave: (taskData: Omit<Task, "id" | "createdAt">) => void
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  task?: Task;
+  category?: TaskCategory;
+  isEdit?: boolean;
 }
 
 interface TaskFormData {
-  title: string
-  description: string
-  priority: TaskPriority
-  category: TaskCategory
-  dueDate: string
+  title: string;
+  description: string;
+  priority: TaskPriority;
+  category: TaskCategory;
+  dueDate: string;
 }
 
-export function TaskDialog({ open, onOpenChange, task, category, onSave }: TaskDialogProps) {
+export function TaskDialog({
+  open,
+  onOpenChange,
+  task,
+  category,
+  isEdit,
+}: TaskDialogProps) {
   const initialFormData: TaskFormData = {
     title: "",
     description: "",
     priority: "medium",
     category: category || "coding",
-    dueDate: ""
-  }
+    dueDate: "",
+  };
 
-  const [formData, setFormData] = useState<TaskFormData>(initialFormData)
-
+  const [formData, setFormData] = useState<TaskFormData>(initialFormData);
+  const { mutate: createTask } = useCreateTask();
   useEffect(() => {
     if (open) {
       if (task) {
@@ -51,46 +65,50 @@ export function TaskDialog({ open, onOpenChange, task, category, onSave }: TaskD
           description: task.description || "",
           priority: task.priority,
           category: task.category,
-          dueDate: task.dueDate ? task.dueDate.toISOString().split("T")[0] : ""
-        })
+          dueDate: task.dueDate ? dayjs(task.dueDate).format("YYYY-MM-DD") : "",
+        });
       } else {
-        setFormData(initialFormData)
+        setFormData(initialFormData);
       }
     }
-  }, [open, task, category])
+  }, [open, task, category]);
 
-  const updateField = (field: keyof TaskFormData, value: string | TaskPriority | TaskCategory) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
-  }
+  const updateField = (
+    field: keyof TaskFormData,
+    value: string | TaskPriority | TaskCategory
+  ) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
 
   const handleSave = () => {
-    if (!formData.title.trim()) return
+    if (!formData.title.trim()) return;
 
-    onSave({
-      title: formData.title.trim(),
-      description: formData.description.trim() || undefined,
-      priority: formData.priority,
-      category: formData.category,
-      completed: task?.completed || false,
-      dueDate: formData.dueDate ? new Date(formData.dueDate) : undefined,
-    })
-
-    onOpenChange(false)
-  }
+    if (isEdit && task) {
+    } else {
+      createTask({
+        title: formData.title.trim(),
+        description: formData.description.trim(),
+        priority: formData.priority,
+        category: formData.category,
+        dueDate: dayjs(formData.dueDate).toISOString(),
+      });
+    }
+    onOpenChange(false);
+  };
 
   const handleCancel = () => {
-    onOpenChange(false)
-  }
+    onOpenChange(false);
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>
-            {task ? "Edit Task" : "Add New Task"}
-          </DialogTitle>
+          <DialogTitle>{task ? "Edit Task" : "Add New Task"}</DialogTitle>
           <DialogDescription>
-            {task ? "Make changes to your task here." : "Create a new task for your daily planner."}
+            {task
+              ? "Make changes to your task here."
+              : "Create a new task for your daily planner."}
           </DialogDescription>
         </DialogHeader>
 
@@ -100,9 +118,13 @@ export function TaskDialog({ open, onOpenChange, task, category, onSave }: TaskD
             <Input
               id="title"
               value={formData.title}
-              onChange={(e) => updateField('title', e.target.value)}
+              onChange={(e) => updateField("title", e.target.value)}
               placeholder="Enter task title..."
-              className={!formData.title.trim() && formData.title !== "" ? "border-red-300" : ""}
+              className={
+                !formData.title.trim() && formData.title !== ""
+                  ? "border-red-300"
+                  : ""
+              }
             />
           </div>
 
@@ -111,7 +133,7 @@ export function TaskDialog({ open, onOpenChange, task, category, onSave }: TaskD
             <Textarea
               id="description"
               value={formData.description}
-              onChange={(e) => updateField('description', e.target.value)}
+              onChange={(e) => updateField("description", e.target.value)}
               placeholder="Enter task description..."
               rows={3}
             />
@@ -122,7 +144,9 @@ export function TaskDialog({ open, onOpenChange, task, category, onSave }: TaskD
               <Label htmlFor="category">Category</Label>
               <Select
                 value={formData.category}
-                onValueChange={(value: TaskCategory) => updateField('category', value)}
+                onValueChange={(value: TaskCategory) =>
+                  updateField("category", value)
+                }
                 disabled={!!category && !task}
               >
                 <SelectTrigger>
@@ -131,7 +155,9 @@ export function TaskDialog({ open, onOpenChange, task, category, onSave }: TaskD
                 <SelectContent>
                   <SelectItem value="coding">Tech Growth 💻</SelectItem>
                   <SelectItem value="life">Life Balance ⚖️</SelectItem>
-                  <SelectItem value="self-care">Self-Care Rituals 🌸</SelectItem>
+                  <SelectItem value="self-care">
+                    Self-Care Rituals 🌸
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -140,7 +166,9 @@ export function TaskDialog({ open, onOpenChange, task, category, onSave }: TaskD
               <Label htmlFor="priority">Priority</Label>
               <Select
                 value={formData.priority}
-                onValueChange={(value: TaskPriority) => updateField('priority', value)}
+                onValueChange={(value: TaskPriority) =>
+                  updateField("priority", value)
+                }
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -160,7 +188,7 @@ export function TaskDialog({ open, onOpenChange, task, category, onSave }: TaskD
               id="dueDate"
               type="date"
               value={formData.dueDate}
-              onChange={(e) => updateField('dueDate', e.target.value)}
+              onChange={(e) => updateField("dueDate", e.target.value)}
               min={new Date().toISOString().split("T")[0]}
             />
           </div>
@@ -176,5 +204,5 @@ export function TaskDialog({ open, onOpenChange, task, category, onSave }: TaskD
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

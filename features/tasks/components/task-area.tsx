@@ -1,42 +1,37 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import * as Icons from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { TaskCard } from "@/features/tasks/components/task-card";
 import { TaskDialog } from "@/features/tasks/components/task-dialog";
-import type { Task, TaskCategory } from "@/types/task";
+import type { TaskCategory } from "@/types/task";
+import { useGetTasks } from "../api/use-get-tasks";
 
 interface TaskAreaProps {
   title: string;
   icon: keyof typeof Icons;
   color: string;
   category: TaskCategory;
-  tasks: Task[];
-  onAddTask: (taskData: Omit<Task, "id" | "createdAt">) => void;
-  onToggleTask: (id: string) => void;
-  onUpdateTask: (id: string, updates: Partial<Task>) => void;
-  onDeleteTask: (id: string) => void;
 }
 
-export function TaskArea({
-  title,
-  icon,
-  color,
-  category,
-  tasks,
-  onAddTask,
-  onToggleTask,
-  onUpdateTask,
-  onDeleteTask,
-}: TaskAreaProps) {
+export function TaskArea({ title, icon, color, category }: TaskAreaProps) {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const Icon = Icons[icon] as LucideIcon;
 
-  const completedCount = tasks.filter((task) => task.completed).length;
-  const totalCount = tasks.length;
+  const { data: tasks = [] } = useGetTasks();
+
+  const categorizedTasks = useMemo(() => {
+    return tasks.filter((task) => task.category === category);
+  }, [tasks, category]);
+
+  const stats = useMemo(() => {
+    const total = categorizedTasks.length;
+    const completed = categorizedTasks.filter((task) => task.completed).length;
+    return { total, completed };
+  }, [categorizedTasks]);
 
   return (
     <>
@@ -48,9 +43,9 @@ export function TaskArea({
             </div>
             <CardTitle className="text-xl">{title}</CardTitle>
           </div>
-          {totalCount > 0 && (
+          {stats.total > 0 && (
             <div className="text-sm text-muted-foreground">
-              {completedCount}/{totalCount}
+              {stats.completed}/{stats.total}
             </div>
           )}
         </CardHeader>
@@ -71,14 +66,8 @@ export function TaskArea({
           ) : (
             <>
               <div className="space-y-2 max-h-96 overflow-y-auto">
-                {tasks.map((task) => (
-                  <TaskCard
-                    key={task.id}
-                    task={task}
-                    onToggle={onToggleTask}
-                    onUpdate={onUpdateTask}
-                    onDelete={onDeleteTask}
-                  />
+                {categorizedTasks.map((task) => (
+                  <TaskCard key={task.id} task={task} />
                 ))}
               </div>
 
@@ -99,7 +88,6 @@ export function TaskArea({
         open={showAddDialog}
         onOpenChange={setShowAddDialog}
         category={category}
-        onSave={onAddTask}
       />
     </>
   );
