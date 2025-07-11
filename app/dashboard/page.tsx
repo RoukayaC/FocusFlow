@@ -22,14 +22,15 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { UserButton, useUser } from "@clerk/nextjs";
 import { UserPreferencesDialog } from "@/features/preferences/components/user-preferences";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-// Import the new hooks
-import { useTasks } from "@/features/tasks/hooks/use-tasks";
 import { usePreferences } from "@/features/preferences/hooks/use-preferences";
 import { useGetProducts } from "@/features/polar/api/use-get-products";
 import type { CreateTaskInput, UpdateTaskInput } from "@/types/task";
 import { client } from "@/lib/hono";
+import { useCreateTask } from "@/features/tasks/api/use-create-task";
+import { useGetTasks } from "@/features/tasks/api/use-get-tasks";
+import { useGetStats } from "@/features/tasks/api/use-get-stats";
 
 function LoadingSkeleton() {
   return (
@@ -325,7 +326,7 @@ function DashboardHeader() {
 }
 
 function QuickActions() {
-  const { createTask, error } = useTasks();
+  const { data: tasks, mutateAsync: createTask, error } = useCreateTask();
   const { preferences } = usePreferences();
 
   const quickTasks = [
@@ -367,6 +368,8 @@ function QuickActions() {
         title: task.title,
         category: task.category,
         priority: task.priority,
+        description: "",
+        dueDate: null,
       };
       await createTask(taskData);
     } catch (error) {
@@ -403,8 +406,7 @@ function QuickActions() {
 }
 
 function ProductivityInsights() {
-  const { getStats } = useTasks();
-  const stats = getStats();
+  const { data: stats } = useGetStats();
 
   return (
     <Card className="bg-white/80 backdrop-blur-sm border-emerald-100">
@@ -443,15 +445,20 @@ function ProductivityInsights() {
 }
 
 function UpcomingDeadlines() {
-  const { tasks } = useTasks();
+  const { data: tasks } = useGetTasks();
 
   // Get tasks with upcoming deadlines
-  const upcomingTasks = tasks
-    .filter((task) => task.dueDate && !task.completed)
-    .sort(
-      (a, b) => new Date(a.dueDate!).getTime() - new Date(b.dueDate!).getTime()
-    )
-    .slice(0, 3);
+  const upcomingTasks = useMemo(
+    () =>
+      tasks
+        ?.filter((task) => task.dueDate && !task.completed)
+        .sort(
+          (a, b) =>
+            new Date(a.dueDate!).getTime() - new Date(b.dueDate!).getTime()
+        )
+        .slice(0, 3) ?? [],
+    [tasks]
+  );
 
   if (upcomingTasks.length === 0) {
     return (
@@ -517,19 +524,7 @@ function UpcomingDeadlines() {
 
 export default function DashboardPage() {
   const { user } = useUser();
-  const {
-    tasks,
-    isLoading: tasksLoading,
-    error: tasksError,
-    createTask,
-    updateTask,
-    deleteTask,
-    toggleTask,
-    getTasksByCategory,
-    getStats,
-    refetch: refetchTasks,
-  } = useTasks();
-
+  const { data: tasks, isLoading: tasksLoading, error, refetch: refetchTasks } = useGetTasks();
   const {
     preferences,
     isLoading: preferencesLoading,
@@ -552,50 +547,18 @@ export default function DashboardPage() {
     }
   }, [user]);
 
-  const handleAddTask = async (taskData: CreateTaskInput) => {
-    try {
-      await createTask(taskData);
-    } catch (error) {
-      console.error("Failed to create task:", error);
-    }
-  };
-
-  const handleToggleTask = async (taskId: string) => {
-    try {
-      await toggleTask(taskId);
-    } catch (error) {
-      console.error("Failed to toggle task:", error);
-    }
-  };
-
-  const handleUpdateTask = async (taskId: string, updates: UpdateTaskInput) => {
-    try {
-      await updateTask(taskId, updates);
-    } catch (error) {
-      console.error("Failed to update task:", error);
-    }
-  };
-
-  const handleDeleteTask = async (taskId: string) => {
-    try {
-      await deleteTask(taskId);
-    } catch (error) {
-      console.error("Failed to delete task:", error);
-    }
-  };
-
   if (tasksLoading || preferencesLoading) {
     return <LoadingSkeleton />;
   }
 
-  if (tasksError) {
+  if (error) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 dark:from-gray-900 dark:via-purple-900/20 dark:to-indigo-900/20">
         <div className="container mx-auto p-4">
           <Alert className="max-w-md mx-auto mt-20 border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20">
             <AlertTriangle className="h-4 w-4 text-red-600" />
             <AlertDescription className="text-red-800 dark:text-red-200">
-              {tasksError}
+              {error.message || "Failed to load tasks. Please try again."}
             </AlertDescription>
             <Button
               variant="outline"
@@ -614,8 +577,6 @@ export default function DashboardPage() {
     );
   }
 
-  const stats = getStats();
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 dark:from-gray-900 dark:via-purple-900/20 dark:to-indigo-900/20">
       <div className="container mx-auto p-4 space-y-6">
@@ -625,7 +586,7 @@ export default function DashboardPage() {
         {/* User Greeting and Summary */}
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
           <UserGreeting />
-          <TaskSummary {...stats} />
+          <TaskSummary />
         </div>
 
         {/* Quick Insights Row */}
@@ -642,11 +603,6 @@ export default function DashboardPage() {
             icon="Code"
             color="bg-gradient-to-br from-purple-100 to-indigo-100 text-purple-600 dark:from-purple-900/20 dark:to-indigo-900/20 dark:text-purple-400"
             category="coding"
-            tasks={getTasksByCategory("coding")}
-            onAddTask={handleAddTask}
-            onToggleTask={handleToggleTask}
-            onUpdateTask={handleUpdateTask}
-            onDeleteTask={handleDeleteTask}
           />
 
           <TaskArea
@@ -654,11 +610,7 @@ export default function DashboardPage() {
             icon="CalendarClock"
             color="bg-gradient-to-br from-pink-100 to-rose-100 text-pink-600 dark:from-pink-900/20 dark:to-rose-900/20 dark:text-pink-400"
             category="life"
-            tasks={getTasksByCategory("life")}
-            onAddTask={handleAddTask}
-            onToggleTask={handleToggleTask}
-            onUpdateTask={handleUpdateTask}
-            onDeleteTask={handleDeleteTask}
+
           />
 
           <TaskArea
@@ -666,11 +618,7 @@ export default function DashboardPage() {
             icon="Heart"
             color="bg-gradient-to-br from-rose-100 to-pink-100 text-rose-600 dark:from-rose-900/20 dark:to-pink-900/20 dark:text-rose-400"
             category="self-care"
-            tasks={getTasksByCategory("self-care")}
-            onAddTask={handleAddTask}
-            onToggleTask={handleToggleTask}
-            onUpdateTask={handleUpdateTask}
-            onDeleteTask={handleDeleteTask}
+
           />
         </div>
       </div>
