@@ -524,7 +524,12 @@ function UpcomingDeadlines() {
 
 export default function DashboardPage() {
   const { user } = useUser();
-  const { data: tasks, isLoading: tasksLoading, error, refetch: refetchTasks } = useGetTasks();
+  const {
+    data: tasks,
+    isLoading: tasksLoading,
+    error,
+    refetch: refetchTasks,
+  } = useGetTasks();
   const {
     preferences,
     isLoading: preferencesLoading,
@@ -534,16 +539,14 @@ export default function DashboardPage() {
   // Sync user when component mounts
   useEffect(() => {
     if (user?.emailAddresses?.[0]?.emailAddress) {
-      fetch("/api/users/sync", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: user.emailAddresses[0].emailAddress,
-          name: user.fullName,
-        }),
-      }).catch(console.error);
+      client.api.users.sync
+        .$post({
+          json: {
+            email: user.emailAddresses[0].emailAddress,
+            name: user.fullName || user.firstName || "User",
+          },
+        })
+        .catch(console.error);
     }
   }, [user]);
 
@@ -610,7 +613,6 @@ export default function DashboardPage() {
             icon="CalendarClock"
             color="bg-gradient-to-br from-pink-100 to-rose-100 text-pink-600 dark:from-pink-900/20 dark:to-rose-900/20 dark:text-pink-400"
             category="life"
-
           />
 
           <TaskArea
@@ -618,7 +620,6 @@ export default function DashboardPage() {
             icon="Heart"
             color="bg-gradient-to-br from-rose-100 to-pink-100 text-rose-600 dark:from-rose-900/20 dark:to-pink-900/20 dark:text-rose-400"
             category="self-care"
-
           />
         </div>
       </div>
