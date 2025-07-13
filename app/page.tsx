@@ -84,18 +84,7 @@ function PricingSection() {
         <p className="text-lg text-gray-600 dark:text-gray-300">
           Choose a plan that fits your needs. No hidden fees. Cancel anytime.
         </p>
-        {!isSignedIn && (
-          <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-            <div className="flex items-center justify-center gap-2 text-amber-800">
-              <Lock className="w-5 h-5" />
-              <span className="font-medium">Sign in required to upgrade</span>
-            </div>
-            <p className="text-sm text-amber-700 mt-2">
-              Please sign in to your account to access premium features and
-              billing.
-            </p>
-          </div>
-        )}
+       
       </div>
 
       {/* Pricing Cards */}
